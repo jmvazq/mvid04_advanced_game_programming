@@ -9,6 +9,7 @@ local function new_project(name)
         files {
             "tests/"..name.."/*.cpp",
             "tests/"..name.."?*.h",
+            "tests/"..name.."/README.md",
             "src/*.cpp",
             "include/**.h",
             "src/deps/glfw/context.c",
