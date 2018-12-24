@@ -9,9 +9,6 @@ local function new_project(name)
         files {
             "tests/"..name.."/*.cpp",
             "tests/"..name.."?*.h",
-            "tests/"..name.."/README.md",
-            "tests/"..name.."/*.png",
-            "tests/"..name.."/*.gif",
             "src/*.cpp",
             "include/**.h",
             "src/deps/glfw/context.c",
