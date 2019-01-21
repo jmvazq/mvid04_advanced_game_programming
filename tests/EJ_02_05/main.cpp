@@ -22,7 +22,7 @@ void render(uint32_t VAO, uint32_t program) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
 }
 
 #pragma endregion
@@ -106,7 +106,26 @@ uint32_t createProgram()
 
 uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
-	float vertices[] = { // unique vertices
+	float vertices[] = { // hexagon (unique) vertices
+		-0.5f, 0.0f, 0.0f, // left triangle tip
+		0.25f, 0.5f, 0.0f, // quad top right
+		0.25f, -0.5f, 0.0f, // quad bottom right
+		-0.25f, -0.5f, 0.0f, // quad bottom left
+		-0.25f, 0.5f, 0.0f, // quad top left
+		0.5f, 0.0f, 0.0f // right triangle tip
+	};
+
+	// HEXAGON - form from a quad with extra 2 triangles, left and right, 6 shared vertices
+	// NOTE: remember order must be COUNTER-CLOCKWISE
+	uint32_t indices[] = { // vertex relationships
+		0, 3, 4,
+		4, 3, 1,
+		1, 3, 2,
+		1, 2, 5
+	};
+
+	/* ALTERNATIVE SOLUTION: forming hexagon from 6 equilateral triangles, only 1 shared vertex, uses 18 vertices instead of 12 */
+	/*	float vertices[] = { // unique vertices
 		-0.5f, 0.0f, 0.0f, // A
 		-0.25f, 0.5f, 0.0f, // B
 		0.25f, 0.5f, 0.0f, // C
@@ -116,8 +135,7 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 		0.0f, 0.0f, 0.0f // G - center
 	};
 
-	// HEXAGON - form from six equilateral triangles
-	// NOTE: remember order must be COUNTER-CLOCKWISE
+	// HEXAGON - from six equilateral triangles
 	uint32_t indices[] = { // vertex relationships
 		6, 1, 0, // GBA
 		6, 2, 1, // GCB
@@ -125,7 +143,7 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 		6, 4, 3, // GED
 		6, 5, 4, //GFE
 		6, 0, 5 // GAF
-	};
+	};*/
 
 	uint32_t VAO;
 	glGenVertexArrays(1, &VAO);
