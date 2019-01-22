@@ -27,7 +27,7 @@ void render(uint32_t VAO, uint32_t program) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 7);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
 }
 
 #pragma endregion
@@ -113,34 +113,22 @@ uint32_t createVertexData(uint32_t *VBO)
 {
 	// HEXAGON
 	const uint32_t n_sides = 6;
-	const uint32_t n_vertices = n_sides + 1; // 6 corners + center
+	const uint32_t n_vertices = n_sides;
 	const float r = 0.75f; // radius or side length
 
-	float xPositions[n_vertices];
-	float yPositions[n_vertices];
-
-	// Define center position
-	xPositions[0] = 0.0f;
-	yPositions[0] = 0.0f;
-
-	// Calculate positions - x and y components
-	for (uint32_t i = 0; i < n_vertices; i++) {
-		xPositions[i] = r * cos(2 * M_PI * i / n_sides);
-		yPositions[i] = r * sin(2 * M_PI * i / n_sides);
-	}
-
 	float vertices[n_vertices * 3]; // triangle vertex array
-	// Assign vertex positions
+
+	// Calculate and Assign vertex positions
 	for (uint32_t i = 0; i < n_vertices; i++)
 	{
-		int xPos = i * 3;
-		int yPos = i * 3 + 1;
-		int zPos = i * 3 + 2;
+		const int x_pos = i * 3;
+		const int y_pos = i * 3 + 1;
+		const int z_pos = i * 3 + 2;
 
-		// calculate vertex coordinates
-		vertices[xPos] = xPositions[i]; // x
-		vertices[yPos] = yPositions[i]; // y
-		vertices[zPos] = 0.0f; // z
+		// Calculate positions - x and y components; z is constant
+		vertices[x_pos] = r * cos(2 * M_PI * i / n_sides); // x
+		vertices[y_pos] = r * sin(2 * M_PI * i / n_sides); // y
+		vertices[z_pos] = 0.0f; // z
 	}
 
 	uint32_t VAO;
