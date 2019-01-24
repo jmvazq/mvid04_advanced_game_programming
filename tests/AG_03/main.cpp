@@ -35,6 +35,13 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
 	};
 
+	// another triangle for example
+	//float vertices[] = { // triangle vertex attributes: position (0) and color (1)
+	//	0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
+	//	0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
+	//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
+	//};
+
 	uint32_t indices[] = { // vertex relationships
 		0, 2, 1
 	};
