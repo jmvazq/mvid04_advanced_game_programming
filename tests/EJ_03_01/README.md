@@ -11,7 +11,7 @@ In the end, I inverted the triangle from AG_03 first, in x and y, which didn't l
 
 Below are the screenshots for the results with both triangles:
 
-Progress tracked in issue #13.
+Progress tracked in issue #16.
 
 
 ![Demo](demo1.png "DEMO EJ_03_01 (1)")
