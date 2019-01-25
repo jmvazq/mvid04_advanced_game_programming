@@ -6,4 +6,4 @@ The goal was to change the triangle's color over time, using glfwGetTime().
 Progress tracked in issue #17.
 
 
-![Demo](demo1.gif "DEMO EJ_03_02")
+![Demo](demo.gif "DEMO EJ_03_02")
