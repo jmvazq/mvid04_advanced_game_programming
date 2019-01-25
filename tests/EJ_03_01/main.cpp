@@ -22,7 +22,6 @@ void handleInput(GLFWwindow *window)
 void render(const uint32_t& VAO, const Shader& shader) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	shader.use();
-	// shader.set("uColor", 0.6f, 0.3f, 0.2f);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
@@ -30,17 +29,10 @@ void render(const uint32_t& VAO, const Shader& shader) {
 uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
 	float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
 		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
 	};
-
-	// another triangle for example
-	//float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-	//	0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
-	//	0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
-	//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
-	//};
 
 	uint32_t indices[] = { // vertex relationships
 		0, 2, 1
@@ -110,7 +102,7 @@ int main(int argc, char* argv[])
 	glfwSetFramebufferSizeCallback(window, onChangeFrameBufferSize);
 
 	// Create program and vertex data
-	const Shader shader("../tests/AG_03/vertex.vs", "../tests/AG_03/fragment.fs");
+	const Shader shader("../tests/EJ_03_01/vertex.vs", "../tests/EJ_03_01/fragment.fs");
 	uint32_t VBO, EBO; // vertex and element buffer objects
 	uint32_t VAO = createVertexData(&VBO, &EBO); // vertex array object
 

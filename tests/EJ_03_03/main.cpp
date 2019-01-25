@@ -19,10 +19,27 @@ void handleInput(GLFWwindow *window)
 	}
 }
 
-void render(const uint32_t& VAO, const Shader& shader) {
+void moveTriangle(const Shader& shader, double& last_time, float& offset, int& dir)
+{
+	const auto current_time = glfwGetTime();
+	const auto time_difference = current_time - last_time;
+
+	// Make triangle "bounce" around by changing direction when it reaches a certain offset
+	if (offset >= 0.5f || offset <= -0.5)
+	{
+		dir = -dir;
+	}
+
+	last_time = current_time;
+	offset += (15.0f / 60 * time_difference) * dir; // move a small amount each frame to make movement smooth
+	
+	shader.set("uOffset", offset);
+}
+
+void render(const uint32_t& VAO, const Shader& shader, double& last_time, float& offset, int& dir) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	shader.use();
-	// shader.set("uColor", 0.6f, 0.3f, 0.2f);
+	moveTriangle(shader, last_time, offset, dir);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
@@ -30,17 +47,10 @@ void render(const uint32_t& VAO, const Shader& shader) {
 uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
 	float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
 		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
 	};
-
-	// another triangle for example
-	//float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-	//	0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
-	//	0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
-	//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
-	//};
 
 	uint32_t indices[] = { // vertex relationships
 		0, 2, 1
@@ -110,12 +120,17 @@ int main(int argc, char* argv[])
 	glfwSetFramebufferSizeCallback(window, onChangeFrameBufferSize);
 
 	// Create program and vertex data
-	const Shader shader("../tests/AG_03/vertex.vs", "../tests/AG_03/fragment.fs");
+	const Shader shader("../tests/EJ_03_03/vertex.vs", "../tests/EJ_03_03/fragment.fs");
 	uint32_t VBO, EBO; // vertex and element buffer objects
 	uint32_t VAO = createVertexData(&VBO, &EBO); // vertex array object
 
 	// Set window bg color
 	glClearColor(50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f, 1.0f);
+
+	// Initialize triangle position and time tracker
+	double last_time = glfwGetTime();
+	float offset = 0.0f;
+	int direction = 1;
 
 	// Set polygon mode
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // NOTE: use GL_LINE to use "WIREFRAME MODE" instead
@@ -130,7 +145,7 @@ int main(int argc, char* argv[])
 		handleInput(window);
 
 		// Render
-		render(VAO, shader);
+		render(VAO, shader, last_time, offset, direction);
 
 		// Swap front and back buffers
 		glfwSwapBuffers(window);
@@ -143,7 +158,7 @@ int main(int argc, char* argv[])
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
-	
+
 
 	// Exit
 	glfwTerminate();
