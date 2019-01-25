@@ -22,7 +22,6 @@ void handleInput(GLFWwindow *window)
 void render(const uint32_t& VAO, const Shader& shader) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	shader.use();
-	// shader.set("uColor", 0.6f, 0.3f, 0.2f);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
