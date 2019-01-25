@@ -19,10 +19,52 @@ void handleInput(GLFWwindow *window)
 	}
 }
 
-void render(const uint32_t& VAO, const Shader& shader) {
+void updateColor(const Shader& shader, double& last_time, char& hue)
+{
+	const auto current_time = glfwGetTime();
+	const float value = 1.0f;
+	glm::vec3 color;
+
+	// Change hue every quarter of a second
+	if (current_time - last_time > 0.25)
+	{
+		last_time = current_time;
+
+		if (hue == 'r')
+		{
+			hue = 'g';
+		}
+		else if (hue == 'g')
+		{
+			hue = 'b';
+		}
+		else
+		{
+			hue = 'r';
+		}
+	}
+
+	// Set color
+	if (hue == 'r')
+	{
+		color = glm::vec3(0.0f, value, 0.0f);
+	}
+	else if (hue == 'g')
+	{
+		color = glm::vec3(0.0f, 0.0f, value);
+	}
+	else
+	{
+		color = glm::vec3(value, 0.0f, 0.0f);
+	}
+
+	shader.set("uColor", color);
+}
+
+void render(const uint32_t& VAO, const Shader& shader, double& last_time, char &hue) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	shader.use();
-	// shader.set("uColor", 0.6f, 0.3f, 0.2f);
+	updateColor(shader, last_time, hue);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
@@ -30,17 +72,10 @@ void render(const uint32_t& VAO, const Shader& shader) {
 uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
 	float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
 		-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
 	};
-
-	// another triangle for example
-	//float vertices[] = { // triangle vertex attributes: position (0) and color (1)
-	//	0.0f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,
-	//	0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,
-	//	-0.5f, -0.5f, 0.0f,		0.0f, 0.0f, 1.0f
-	//};
 
 	uint32_t indices[] = { // vertex relationships
 		0, 2, 1
@@ -110,12 +145,16 @@ int main(int argc, char* argv[])
 	glfwSetFramebufferSizeCallback(window, onChangeFrameBufferSize);
 
 	// Create program and vertex data
-	const Shader shader("../tests/AG_03/vertex.vs", "../tests/AG_03/fragment.fs");
+	const Shader shader("../tests/EJ_03_02/vertex.vs", "../tests/EJ_03_02/fragment.fs");
 	uint32_t VBO, EBO; // vertex and element buffer objects
 	uint32_t VAO = createVertexData(&VBO, &EBO); // vertex array object
 
 	// Set window bg color
 	glClearColor(50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f, 1.0f);
+
+	// Initialize triangle color info and time counter
+	char hue = 'r';
+	double last_time = glfwGetTime();
 
 	// Set polygon mode
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // NOTE: use GL_LINE to use "WIREFRAME MODE" instead
@@ -130,7 +169,7 @@ int main(int argc, char* argv[])
 		handleInput(window);
 
 		// Render
-		render(VAO, shader);
+		render(VAO, shader, last_time, hue);
 
 		// Swap front and back buffers
 		glfwSwapBuffers(window);
@@ -143,7 +182,7 @@ int main(int argc, char* argv[])
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
-	
+
 
 	// Exit
 	glfwTerminate();
