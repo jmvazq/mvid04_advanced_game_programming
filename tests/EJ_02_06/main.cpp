@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <cmath>
+#include <stdio.h>
 
 
 #pragma region Functions: for Main Loop
@@ -27,7 +28,7 @@ void render(uint32_t VAO, uint32_t program) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
+	glDrawElements(GL_TRIANGLES, (6 * 3), GL_UNSIGNED_INT, nullptr);
 }
 
 #pragma endregion
@@ -109,17 +110,22 @@ uint32_t createProgram()
 
 #pragma region Functions: for dealing with vertex data
 
-uint32_t createVertexData(uint32_t *VBO)
+uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
 	// HEXAGON
 	const uint32_t n_sides = 6;
-	const uint32_t n_vertices = n_sides;
+	const uint32_t n_vertices = n_sides + 1; // one more vertex for the center
 	const float r = 0.75f; // radius or side length
 
-	float vertices[n_vertices * 3]; // triangle vertex array
+	float vertices[n_vertices * 3];
 
-	// Calculate and Assign vertex positions
-	for (uint32_t i = 0; i < n_vertices; i++)
+	// Make center position at origin
+	vertices[0] = 0.0f; // x
+	vertices[1] = 0.0f; // y
+	vertices[2] = 0.0f; // z
+
+	// Calculate and Assign vertex positions for the sides
+	for (uint32_t i = 1; i < n_vertices; i++)
 	{
 		const int x_pos = i * 3;
 		const int y_pos = i * 3 + 1;
@@ -131,15 +137,38 @@ uint32_t createVertexData(uint32_t *VBO)
 		vertices[z_pos] = 0.0f; // z
 	}
 
+	uint32_t indices[n_sides * 3];
+
+	// Calculate indices
+	for (uint32_t i = 0; i < n_sides; i++) {
+		const int a = i * 3;
+		const int b = i * 3 + 1;
+		const int c = i * 3 + 2;
+
+		indices[a] = 0;
+		indices[b] = i + 1;
+		if (i + 1 == n_sides)
+		{
+			indices[c] = 1; // complete the polygon by going back to the first non-center vertex
+		} else
+		{
+			indices[c] = i + 2;
+		}
+	}
+
 	uint32_t VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, VBO);
+	glGenBuffers(1, EBO);
 
 	glBindVertexArray(VAO);
 
 	// Bind buffers and assign data
 	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Set vertex attribute pointer at 0, then enable
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -148,6 +177,7 @@ uint32_t createVertexData(uint32_t *VBO)
 	// Unbind buffers and array
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // NOTE: must happen after unbinding VAO
 
 	return VAO;
 }
@@ -187,8 +217,8 @@ int main(int argc, char* argv[])
 
 	// Create program and vertex data
 	uint32_t program = createProgram();
-	uint32_t VBO; // vertex buffer object
-	uint32_t VAO = createVertexData(&VBO); // get vertex array object
+	uint32_t VBO, EBO; // vertex and element buffer objects
+	uint32_t VAO = createVertexData(&VBO, &EBO); // get vertex array object
 
 	// Set window bg color
 	glClearColor(148.0f / 255.0f, 0.0f, 211.0f / 255.0f, 1.0f);
@@ -218,6 +248,7 @@ int main(int argc, char* argv[])
 	// Delete everything before terminating
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(program);
 
 	// Exit
