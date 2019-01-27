@@ -22,7 +22,8 @@ void handleInput(GLFWwindow *window)
 void moveTriangle(const Shader& shader, double& last_time, float& offset, int& dir)
 {
 	const auto current_time = glfwGetTime();
-	const auto time_difference = current_time - last_time;
+	const auto delta_time = current_time - last_time;
+	const auto speed = 0.25f;
 
 	// Make triangle "bounce" around by changing direction when it reaches a certain offset
 	if (offset >= 0.5f || offset <= -0.5)
@@ -31,7 +32,7 @@ void moveTriangle(const Shader& shader, double& last_time, float& offset, int& d
 	}
 
 	last_time = current_time;
-	offset += (15.0f / 60 * time_difference) * dir; // move a small amount each frame to make movement smooth
+	offset += speed * delta_time * dir; // move a small, consistent amount each frame to make movement smooth
 	
 	shader.set("uOffset", offset);
 }
