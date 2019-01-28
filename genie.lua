@@ -14,7 +14,8 @@ local project_list = {
     "EJ_03_04",
     "AG_04",
     "AG_05_01",
-    "AG_05_02"
+    "AG_05_02",
+    "AG_06"
 }
 
 local function new_project(name)
