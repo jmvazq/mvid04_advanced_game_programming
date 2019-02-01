@@ -27,6 +27,20 @@ Camera camera(glm::vec3(-1.0f, 2.0f, 3.0f));
 // Light
 glm::vec3 lightPos(1.2f, 1.0f, -2.0f);
 
+// Lots of cubes
+glm::vec3 cube_positions[] = {
+	glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::vec3(2.0f, 5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f, 3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f, 2.0f, -2.5f),
+	glm::vec3(1.5f, 0.2f, -1.5f),
+	glm::vec3(-1.3f, 1.0f, -1.5f)
+};
+
 #pragma region Functions: for Main Loop
 
 void onChangeFrameBufferSize(GLFWwindow *window, const int32_t width, const int32_t height)
@@ -89,7 +103,7 @@ void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 proj = glm::mat4(1.0f);
-	proj = glm::perspective(glm::radians(camera.getFOV()), (float) screen_width / screen_height, 0.1f, 10.0f);
+	proj = glm::perspective(glm::radians(camera.getFOV()), (float) screen_width / screen_height, 0.1f, 60.0f);
 
 	const glm::mat4 view = camera.getViewMatrix();
 
@@ -108,11 +122,16 @@ void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
-	// Draw the cube
+	// Draw the cubes
 	shader_cube.use();
 
+	shader_cube.set("projection", proj);
+	shader_cube.set("view", view);
+
+	shader_cube.set("viewPos", camera.getPosition());
+
 	// Cube - Light properties
-	shader_cube.set("light.position", lightPos);
+	shader_cube.set("light.direction", -0.2, -1.0f, -0.3f);
 	shader_cube.set("light.ambient", 0.1f, 0.1f, 0.1f);
 	shader_cube.set("light.diffuse", 0.5f, 0.5f, 0.5f);
 	shader_cube.set("light.specular", 1.0f, 1.0f, 1.0f);
@@ -129,52 +148,60 @@ void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, text_spec);
 
-	shader_cube.set("textDif", 0);
-	shader_cube.set("specularMap", 1);
-
-	shader_cube.set("viewPos", camera.getPosition());
-
-	shader_cube.set("projection", proj);
-	shader_cube.set("view", view);
-	shader_cube.set("model", glm::mat4(1.0)); // model, no transformations
-
-	const glm::mat3 normalMat = glm::inverse(glm::transpose(model));
-	shader_cube.set("normalMat", normalMat);
+	shader_cube.set("texture1", 0);
+	shader_cube.set("texture2", 1);
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+
+	for (uint32_t i = 0; i < 10; i++)
+	{
+		// Draw a rotating cube
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, cube_positions[i]);
+		const float angle = 10.f + (20.0f * i);
+		model = glm::rotate(model, static_cast<float>(glfwGetTime()) * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+
+		shader_cube.set("model", model);
+
+		const glm::mat3 normalMat = glm::inverse(glm::transpose(model));
+		shader_cube.set("normalMat", normalMat);
+
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+	}
 }
 
 uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 {
 	// Whoah! A Cube!
 	float vertices[] = {
-		// Position //Normal
-		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		0.0f, 0.0f, //Front
+		// Position=0 // Normal=1 // UVs=2
+		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		0.0f, 0.0f, // Front quad
 		0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		1.0f, 0.0f,
 		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		1.0f, 1.0f,
 		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		0.0f, 1.0f,
-		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,		0.0f, 0.0f, // Right
+		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,		0.0f, 0.0f, // Right quad
 		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
 		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
 		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 0.0f, // Back
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 0.0f, // Back quad
 		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		1.0f, 1.0f,
 		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		0.0f, 1.0f,
 		0.5f, -0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		0.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,		1.0f, 0.0f, // Left
+		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,		1.0f, 0.0f, // Left quad
 		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
 		-0.5f, 0.5f, -0.5f,		-1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
 		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,		0.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,		0.0f, 1.0f, // Bottom
+		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,		0.0f, 1.0f, // Bottom quad
 		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,		0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f,		0.0f, -1.0f, 0.0f,		1.0f, 0.0f,
 		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,		1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 0.0f, // Top
-		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		0.1f, 0.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		0.1f, 1.0f,
-		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 0.0f, // Top quad
+		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		1.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 1.0f
 	};
+
 	uint32_t indices[] = {
 		0, 1, 2,		0, 2, 3, // Front
 		4, 5, 6,		4, 6, 7, // Right
@@ -285,16 +312,16 @@ int main(int argc, char* argv[])
 	glfwSetScrollCallback(window, onScroll);
 
 	// Create program and vertex data
-	const Shader shader_light("../tests/AG_07_02/light.vs", "../tests/AG_07_02/light.fs");
-	const Shader shader_cube("../tests/AG_07_02/cube.vs", "../tests/AG_07_02/cube.fs");
+	const Shader shader_light("../tests/AG_08_02/light.vs", "../tests/AG_08_02/light.fs");
+	const Shader shader_cube("../tests/AG_08_02/cube.vs", "../tests/AG_08_02/cube.fs");
 
 	uint32_t VBO, EBO; // vertex and element buffer objects
 	uint32_t VAO = createVertexData(&VBO, &EBO); // vertex array object
 
 	// textures/maps
 	stbi_set_flip_vertically_on_load(true);
-	uint32_t text_dif = createTexture("../tests/AG_07_02/AG07_albedo.png");
-	uint32_t text_spec = createTexture("../tests/AG_07_02/AG07_specular.png");
+	uint32_t text_dif = createTexture("../tests/AG_08_02/AG07_albedo.png");
+	uint32_t text_spec = createTexture("../tests/AG_08_02/AG07_specular.png");
 
 	// Set window bg color
 	glClearColor(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0f);
