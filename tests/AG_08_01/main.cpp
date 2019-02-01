@@ -22,10 +22,10 @@ bool firstMouse = true;
 float lastX = screen_width / 2.0f;
 float lastY = screen_height / 2.0f;
 
-Camera camera(glm::vec3(-1.0f, 2.0f, 3.0f));
+Camera camera(glm::vec3(-1.0f, 2.0f, 6.0f));
 
 // Light
-glm::vec3 lightPos(1.2f, 1.0f, -2.0f);
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 #pragma region Functions: for Main Loop
 
@@ -84,61 +84,46 @@ void onMouse(GLFWwindow* window, double xpos, double ypos)
 	camera.handleMouseMovement(xoffset, yoffset);
 }
 
-void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader_cube, const int32_t text_dif, const uint32_t text_spec) {
+void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader_cube) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	glm::mat4 proj = glm::mat4(1.0f);
-	proj = glm::perspective(glm::radians(camera.getFOV()), (float) screen_width / screen_height, 0.1f, 10.0f);
-
-	const glm::mat4 view = camera.getViewMatrix();
-
 	// Draw the lamp
+	glm::mat4 proj = glm::mat4(1.0f);
+	proj = glm::perspective(glm::radians(camera.getFOV()), (float)screen_width / screen_height, 0.1f, 30.0f);
+
+	glm::mat4 view = camera.getViewMatrix();
+
+	glm::mat4 model_lamp = glm::mat4(1.0f);
+	model_lamp = glm::translate(model_lamp, lightPos);
+	model_lamp = glm::scale(model_lamp, glm::vec3(0.2f));
+
 	shader_lamp.use();
-
-	// model transformations
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, lightPos);
-	model = glm::scale(model, glm::vec3(0.2f));
-
 	shader_lamp.set("projection", proj);
 	shader_lamp.set("view", view);
-	shader_lamp.set("model", model);
+	shader_lamp.set("model", model_lamp);
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
 	// Draw the cube
+	glm::mat4 model_cube = glm::mat4(1.0);
+	model_cube = glm::scale(model_cube, glm::vec3(10.0f, 0.5f, 10.0f));
 	shader_cube.use();
-
-	// Cube - Light properties
-	shader_cube.set("light.position", lightPos);
-	shader_cube.set("light.ambient", 0.1f, 0.1f, 0.1f);
-	shader_cube.set("light.diffuse", 0.5f, 0.5f, 0.5f);
-	shader_cube.set("light.specular", 1.0f, 1.0f, 1.0f);
-
-	// Cube - Material properties
-	shader_cube.set("material.diffuse", 0);
-	shader_cube.set("material.specular", 1);
-	shader_cube.set("material.shininess", (float) 0.1f * 128);
-
-	// Set text_dif and specular map
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, text_dif);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, text_spec);
-
-	shader_cube.set("textDif", 0);
-	shader_cube.set("specularMap", 1);
+	shader_cube.set("objectColor", 1.0f, 0.5f, 0.3f);
+	shader_cube.set("lightColor", 1.0f, 1.0f, 1.0f);
+	shader_cube.set("ambientStrength", 0.1f);
+	shader_cube.set("lightPos", lightPos);
 
 	shader_cube.set("viewPos", camera.getPosition());
+	shader_cube.set("shininess", 1);
+	shader_cube.set("specularStrength", 0.3f);
 
 	shader_cube.set("projection", proj);
 	shader_cube.set("view", view);
-	shader_cube.set("model", glm::mat4(1.0)); // model, no transformations
+	shader_cube.set("model", model_cube);
 
-	const glm::mat3 normalMat = glm::inverse(glm::transpose(model));
+	const glm::mat3 normalMat = glm::inverse(glm::transpose(model_cube));
 	shader_cube.set("normalMat", normalMat);
 
 	glBindVertexArray(VAO);
@@ -150,30 +135,30 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 	// Whoah! A Cube!
 	float vertices[] = {
 		// Position //Normal
-		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		0.0f, 0.0f, //Front
-		0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		1.0f, 0.0f,
-		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,		0.0f, 1.0f,
-		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,		0.0f, 0.0f, // Right
-		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,		1.0f, 0.0f,
-		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
-		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f,		1.0f, 0.0f, // Back
-		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		1.0f, 1.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,		0.0f, 0.0f, -1.0f,		0.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,		1.0f, 0.0f, // Left
-		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,		1.0f, 1.0f,
-		-0.5f, 0.5f, -0.5f,		-1.0f, 0.0f, 0.0f,		0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,		0.0f, 0.0f,
-		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,		0.0f, 1.0f, // Bottom
-		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,		0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,		0.0f, -1.0f, 0.0f,		1.0f, 0.0f,
-		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,		1.0f, 1.0f,
-		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 0.0f, // Top
-		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,		0.1f, 0.0f,
-		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		0.1f, 1.0f,
-		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,		0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f, //Front
+		0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f, // Right
+		0.5f, -0.5f, -0.5f,		1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, -1.0f, // Back
+		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 0.0f, -1.0f,
+		0.5f, -0.5f, -0.5f,		0.0f, 0.0f, -1.0f,
+		-0.5f, -0.5f, 0.5f,		-1.0f, 0.0f, 0.0f, // Left
+		-0.5f, 0.5f, 0.5f,		-1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f,		-1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,	-1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f, // Bottom
+		-0.5f, -0.5f, -0.5f,	0.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,		0.0f, -1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f,		0.0f, -1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f, // Top
+		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,
 	};
 	uint32_t indices[] = {
 		0, 1, 2,		0, 2, 3, // Front
@@ -199,16 +184,12 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Set vertex attribute pointer at 0 (position attribute), then enable
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// Set vertex attribute pointer at 1 (normal attribute), then enable
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
-	// Set vertex attribute pointer at 0 (position attribute), then enable
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
 
 	// Unbind buffers and array
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -216,37 +197,6 @@ uint32_t createVertexData(uint32_t *VBO, uint32_t *EBO)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // NOTE: must happen after unbinding VAO
 
 	return VAO;
-}
-
-uint32_t createTexture(const char* path)
-{
-	// Generate and bind texture
-	uint32_t texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	// Texture wrapping
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// Texture filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(data);
-	}
-	else
-	{
-		std::cout << "Failed to load texture: " << path << std::endl;
-	}
-
-	return texture;
 }
 
 #pragma endregion
@@ -285,16 +235,11 @@ int main(int argc, char* argv[])
 	glfwSetScrollCallback(window, onScroll);
 
 	// Create program and vertex data
-	const Shader shader_light("../tests/AG_07_02/light.vs", "../tests/AG_07_02/light.fs");
-	const Shader shader_cube("../tests/AG_07_02/cube.vs", "../tests/AG_07_02/cube.fs");
+	const Shader shader_light("../tests/AG_08_01/light.vs", "../tests/AG_08_01/light.fs");
+	const Shader shader_cube("../tests/AG_08_01/cube.vs", "../tests/AG_08_01/cube.fs");
 
 	uint32_t VBO, EBO; // vertex and element buffer objects
 	uint32_t VAO = createVertexData(&VBO, &EBO); // vertex array object
-
-	// textures/maps
-	stbi_set_flip_vertically_on_load(true);
-	uint32_t text_dif = createTexture("../tests/AG_07_02/AG07_albedo.png");
-	uint32_t text_spec = createTexture("../tests/AG_07_02/AG07_specular.png");
 
 	// Set window bg color
 	glClearColor(0.0f / 255.0f, 0.0f / 255.0f, 0.0f / 255.0f, 1.0f);
@@ -319,7 +264,7 @@ int main(int argc, char* argv[])
 		handleInput(window, deltaTime);
 
 		// Render
-		render(VAO, shader_light, shader_cube, text_dif, text_spec);
+		render(VAO, shader_light, shader_cube);
 
 		// Swap front and back buffers
 		glfwSwapBuffers(window);
@@ -332,8 +277,6 @@ int main(int argc, char* argv[])
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
-	glDeleteTextures(1, &text_dif);
-	glDeleteTextures(1, &text_spec);
 
 	// Exit
 	glfwTerminate();
