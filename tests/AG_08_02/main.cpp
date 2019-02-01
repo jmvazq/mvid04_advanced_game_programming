@@ -137,7 +137,6 @@ void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader
 	shader_cube.set("light.specular", 1.0f, 1.0f, 1.0f);
 
 	// Cube - Material properties
-	shader_cube.set("material.ambient", 0.135f, 0.2225f, 0.1575f);
 	shader_cube.set("material.diffuse", 0);
 	shader_cube.set("material.specular", 1);
 	shader_cube.set("material.shininess", (float) 0.1f * 128);
