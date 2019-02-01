@@ -103,7 +103,7 @@ void onMouse(GLFWwindow* window, double xpos, double ypos)
 	camera.handleMouseMovement(xoffset, yoffset);
 }
 
-void render(const uint32_t& VAO, const Shader& shader_lamp, const Shader& shader_cube, const int32_t text_dif, const uint32_t text_spec) {
+void render(const uint32_t& VAO, const Shader& shader_cube, const int32_t text_dif, const uint32_t text_spec) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -320,7 +320,6 @@ int main(int argc, char* argv[])
 	glfwSetScrollCallback(window, onScroll);
 
 	// Create program and vertex data
-	const Shader shader_light("../tests/AG_08_05/light.vs", "../tests/AG_08_05/light.fs");
 	const Shader shader_cube("../tests/AG_08_05/cube.vs", "../tests/AG_08_05/cube.fs");
 
 	uint32_t VBO, EBO; // vertex and element buffer objects
@@ -354,7 +353,7 @@ int main(int argc, char* argv[])
 		handleInput(window, deltaTime);
 
 		// Render
-		render(VAO, shader_light, shader_cube, text_dif, text_spec);
+		render(VAO, shader_cube, text_dif, text_spec);
 
 		// Swap front and back buffers
 		glfwSwapBuffers(window);
