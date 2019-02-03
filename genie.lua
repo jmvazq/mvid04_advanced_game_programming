@@ -22,7 +22,8 @@ local project_list = {
     "AG_08_02",
     "AG_08_03",
     "AG_08_04",
-    "AG_08_05"
+    "AG_08_05",
+    "AG_09"
 }
 
 local function new_project(name)
@@ -62,9 +63,11 @@ local function new_project(name)
     configuration {"debug"}
         flags {"Symbols"}
         targetsuffix ("_d")
+        libdirs {"libs/Debug"}
     configuration {"release"}
         flags {"Optimize"}
         targetsuffix ("_r")
+        libdirs {"libs/Release"}
     configuration {"windows"}
         files {
             "src/deps/glfw/egl_context.c",
@@ -72,7 +75,7 @@ local function new_project(name)
             "src/deps/glfw/wgl_*",
             "src/deps/glfw/winmm_*"
         }
-        links {"OpenGL32"}
+        links {"OpenGL32", "assimp-vc140-mt"}
         defines {"_GLFW_WIN32", "_GLFW_WGL"}
         flags {"NoEditAndContinue"}
         windowstargetplatformversion "10.0.17134.0"
