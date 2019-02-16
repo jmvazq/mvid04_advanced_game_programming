@@ -5,8 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <assimp/Importer.hpp>
-
 #include <iostream>
 #include "shader.h"
 #include "camera.h"
@@ -93,7 +91,7 @@ void render(const Shader& shader, Model& object) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 proj = glm::mat4(1.0f);
-	proj = glm::perspective(glm::radians(camera.getFOV()), (float)screen_width / screen_height, 0.1f, 60.0f);
+	proj = glm::perspective(glm::radians(camera.getFOV()), (float) screen_width / screen_height, 0.1f, 60.0f);
 
 	const glm::mat4 view = camera.getViewMatrix();
 
